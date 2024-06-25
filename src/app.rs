@@ -91,14 +91,49 @@ impl App {
         let mut app = App::new();
         app.current_file = Some(filename.to_string());
         for line in content.lines() {
-            if line.len() > 4 && (line.starts_with("[ ]") || line.starts_with("[√]")) {
-                let completed = line.starts_with("[√]");
-                let text = line[4..].to_string();
-                app.todos.push(TodoItem { text, completed });
+            if let Some(stripped) = line.strip_prefix('[') {
+                if let Some(index) = stripped.find(']') {
+                    let status = &stripped[..index];
+                    let completed = status.trim() == "√" || status.trim() == "x";
+                    let text = stripped[index+1..].trim().to_string();
+                    if !text.is_empty() {
+                        app.todos.push(TodoItem { text, completed });
+                    }
+                }
             }
         }
         Ok(app)
     }
+
+//     pub fn load_from_file(filename: &str, save_dir: &Path) -> std::io::Result<Self> {
+//         let path = save_dir.join(filename);
+//         let content = fs::read_to_string(path)?;
+//         let mut app = App::new();
+//         app.current_file = Some(filename.to_string());
+//         for line in content.lines() {
+//             if line.len() > 3 && (line.starts_with("[ ") || line.starts_with("[√") || line.starts_with("[x")) {
+//                 let completed = line.starts_with("[√") || line.starts_with("[x");
+//                 let text = line[3..].trim_start().trim_end_matches(']').to_string();
+//                 app.todos.push(TodoItem { text, completed });
+//             }
+//         }
+//         Ok(app)
+//     }
+
+    // pub fn load_from_file(filename: &str, save_dir: &Path) -> std::io::Result<Self> {
+    //     let path = save_dir.join(filename);
+    //     let content = fs::read_to_string(path)?;
+    //     let mut app = App::new();
+    //     app.current_file = Some(filename.to_string());
+    //     for line in content.lines() {
+    //         if line.len() > 4 && (line.starts_with("[ ]") || line.starts_with("[√]")) {
+    //             let completed = line.starts_with("[√]");
+    //             let text = line[4..].trim().to_string(); // trim을 추가하여 앞뒤 공백 제거
+    //             app.todos.push(TodoItem { text, completed });
+    //         }
+    //     }
+    //     Ok(app)
+    // }
 
     fn get_file_list(dir: &Path) -> Vec<String> {
         fs::read_dir(dir)
